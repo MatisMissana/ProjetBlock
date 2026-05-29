@@ -1,0 +1,870 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .app {
+    font-family: 'DM Sans', sans-serif;
+    background: #0a0e1a;
+    color: #e2e8f0;
+    min-height: 600px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .grid-bg {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(99,179,237,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(99,179,237,0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* NAV */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(99,179,237,0.12);
+    background: rgba(10,14,26,0.8);
+    backdrop-filter: blur(8px);
+  }
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px; font-weight: 700;
+    color: #63b3ed;
+    letter-spacing: 1px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ship-icon { font-size: 18px; }
+  .nav-wallet {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: rgba(99,179,237,0.08);
+    border: 1px solid rgba(99,179,237,0.2);
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: #90cdf4;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-wallet:hover { background: rgba(99,179,237,0.15); }
+  .wallet-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #48bb78; box-shadow: 0 0 6px #48bb78;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 4px; padding: 12px 20px 0;
+  }
+  .tab {
+    padding: 7px 16px; border-radius: 8px 8px 0 0;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    background: transparent; color: #718096;
+  }
+  .tab.active {
+    background: rgba(99,179,237,0.12);
+    color: #63b3ed;
+    border: 1px solid rgba(99,179,237,0.2);
+    border-bottom: none;
+  }
+  .tab:hover:not(.active) { color: #a0aec0; }
+
+  .panel {
+    padding: 20px;
+    border-top: 1px solid rgba(99,179,237,0.12);
+  }
+
+  /* LOBBY */
+  .lobby-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 600;
+    color: #63b3ed; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge {
+    padding: 3px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+    background: rgba(72,187,120,0.15);
+    color: #68d391;
+    border: 1px solid rgba(72,187,120,0.2);
+  }
+  .player-list { display: flex; flex-direction: column; gap: 8px; }
+  .player-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .player-row:hover { background: rgba(99,179,237,0.06); border-color: rgba(99,179,237,0.15); }
+  .player-info { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    font-family: 'Space Mono', monospace;
+  }
+  .player-name { font-size: 14px; font-weight: 500; }
+  .player-addr {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: #4a5568;
+  }
+  .player-stats { display: flex; gap: 12px; align-items: center; }
+  .stat { font-size: 11px; color: #718096; }
+  .stat span { color: #e2e8f0; font-weight: 600; }
+  .btn-challenge {
+    padding: 5px 12px;
+    background: rgba(99,179,237,0.1);
+    border: 1px solid rgba(99,179,237,0.25);
+    border-radius: 6px;
+    color: #63b3ed; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-challenge:hover { background: rgba(99,179,237,0.2); transform: translateY(-1px); }
+
+  /* GAME AREA */
+  .game-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-container { }
+  .grid-label {
+    font-size: 11px; color: #718096; margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .grid-label .hits {
+    color: #fc8181; font-weight: 700; font-size: 12px;
+  }
+  .grid-label .misses {
+    color: #63b3ed; font-size: 12px;
+  }
+  .sea-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    position: relative; overflow: hidden;
+  }
+  .cell.ship { background: rgba(99,179,237,0.15); border-color: rgba(99,179,237,0.3); }
+  .cell.hit {
+    background: rgba(252,129,129,0.2); border-color: rgba(252,129,129,0.4);
+    animation: hitFlash 0.4s ease;
+  }
+  .cell.miss {
+    background: rgba(99,179,237,0.08); border-color: rgba(99,179,237,0.2);
+  }
+  .cell.attackable:hover {
+    background: rgba(237,137,54,0.2); border-color: rgba(237,137,54,0.4);
+    transform: scale(1.05); cursor: crosshair;
+  }
+  .cell.last-attack { border-color: rgba(237,137,54,0.6); box-shadow: 0 0 8px rgba(237,137,54,0.3); }
+  @keyframes hitFlash {
+    0% { background: rgba(252,129,129,0.6); }
+    100% { background: rgba(252,129,129,0.2); }
+  }
+
+  /* STATUS PANEL */
+  .status-panel {
+    grid-column: 1 / -1;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+  }
+  .status-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .status-info { font-size: 13px; color: #a0aec0; }
+  .status-info strong { color: #e2e8f0; }
+  .turn-indicator {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+  }
+  .turn-indicator.your-turn {
+    background: rgba(72,187,120,0.12);
+    color: #68d391; border: 1px solid rgba(72,187,120,0.2);
+  }
+  .turn-indicator.their-turn {
+    background: rgba(252,129,129,0.08);
+    color: #fc8181; border: 1px solid rgba(252,129,129,0.15);
+  }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; animation: pulse 1.5s infinite; }
+  .pulse.green { background: #48bb78; }
+  .pulse.red { background: #fc8181; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  /* RESPONSE BUTTONS */
+  .response-btns { display: flex; gap: 8px; }
+  .btn-resp {
+    padding: 6px 14px; border-radius: 6px; border: none;
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-miss { background: rgba(99,179,237,0.15); color: #63b3ed; border: 1px solid rgba(99,179,237,0.25); }
+  .btn-hit { background: rgba(252,129,129,0.15); color: #fc8181; border: 1px solid rgba(252,129,129,0.25); }
+  .btn-sunk { background: rgba(237,137,54,0.15); color: #ed8936; border: 1px solid rgba(237,137,54,0.25); }
+  .btn-resp:hover { transform: translateY(-1px); filter: brightness(1.2); }
+
+  /* SETUP */
+  .setup-layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+  .setup-grid { }
+  .setup-info { display: flex; flex-direction: column; gap: 12px; }
+  .info-card {
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+  }
+  .info-card h3 { font-size: 12px; color: #63b3ed; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-card p { font-size: 12px; color: #718096; line-height: 1.5; }
+  .commitment-box {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; color: #4a5568;
+    word-break: break-all; line-height: 1.6;
+  }
+  .commitment-box span { color: #63b3ed; }
+  .btn-primary {
+    width: 100%; padding: 10px;
+    background: linear-gradient(135deg, rgba(99,179,237,0.2), rgba(99,179,237,0.1));
+    border: 1px solid rgba(99,179,237,0.3);
+    border-radius: 8px; color: #63b3ed;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary:hover { background: rgba(99,179,237,0.25); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* CONTRACT */
+  .contract-panel {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(99,179,237,0.1);
+    border-radius: 8px; padding: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: #4a5568;
+  }
+  .contract-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .contract-row:last-child { border-bottom: none; }
+  .contract-key { color: #63b3ed; }
+  .contract-val { color: #a0aec0; max-width: 200px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .contract-val.state-committed { color: #48bb78; }
+  .contract-val.state-created { color: #ed8936; }
+
+  /* LOG */
+  .log-area {
+    max-height: 120px; overflow-y: auto;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .log-entry { color: #4a5568; }
+  .log-entry.tx { color: #63b3ed; }
+  .log-entry.hit { color: #fc8181; }
+  .log-entry.miss { color: #718096; }
+  .log-entry.system { color: #ed8936; }
+
+  /* WINNER */
+  .winner-overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,14,26,0.92);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; border-radius: 12px;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .winner-card {
+    text-align: center; padding: 32px 40px;
+    border: 1px solid rgba(72,187,120,0.3);
+    border-radius: 16px;
+    background: rgba(10,14,26,0.8);
+  }
+  .winner-emoji { font-size: 48px; margin-bottom: 12px; }
+  .winner-title { font-size: 28px; font-weight: 700; color: #68d391; margin-bottom: 4px; }
+  .winner-sub { font-size: 13px; color: #718096; margin-bottom: 20px; }
+  .prize-badge {
+    display: inline-block; padding: 8px 20px;
+    background: rgba(72,187,120,0.12);
+    border: 1px solid rgba(72,187,120,0.25);
+    border-radius: 20px; color: #68d391;
+    font-size: 15px; font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 20px;
+  }
+  .btn-restart {
+    padding: 10px 24px; border-radius: 8px;
+    background: rgba(99,179,237,0.15); border: 1px solid rgba(99,179,237,0.3);
+    color: #63b3ed; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-restart:hover { background: rgba(99,179,237,0.25); }
+
+  .section-label { font-size: 11px; color: #4a5568; margin-top: 14px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .divider { border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 12px 0; }
+
+  .stake-display {
+    display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
+    font-family: 'Space Mono', monospace; color: #ed8936;
+  }
+  .eth-symbol { font-size: 16px; }
+</style>
+
+<div class="app" id="app">
+  <div class="grid-bg"></div>
+  <div class="content">
+
+    <nav class="nav">
+      <div class="nav-logo">
+        <span class="ship-icon">⚓</span>
+        BATTLESHIPS
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="stake-display">
+          <span class="eth-symbol">Ξ</span>
+          <span id="stake-display">1.0 ETH</span>
+        </div>
+        <div class="nav-wallet" id="wallet-btn">
+          <div class="wallet-dot"></div>
+          <span id="wallet-addr">0xAlice...d4F2</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('lobby')">⚓ Lobby</button>
+      <button class="tab" onclick="showTab('setup')" id="tab-setup">⚙ Setup</button>
+      <button class="tab" onclick="showTab('game')" id="tab-game">⚔ Partie</button>
+    </div>
+
+    <div class="panel" id="panel-lobby">
+      <div class="lobby-header">
+        <span class="section-title">Joueurs en ligne</span>
+        <span class="badge">3 en ligne</span>
+      </div>
+
+      <div class="info-card" style="margin-bottom:14px;">
+        <h3>Ton profil</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+          <div class="avatar" style="background:rgba(99,179,237,0.15);color:#63b3ed">Al</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Alice</div>
+            <div style="font-family:'Space Mono',monospace;font-size:10px;color:#4a5568">0xAlice...d4F2</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:12px">
+            <div class="stat">Victoires <span>7</span></div>
+            <div class="stat">Parties <span>12</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-list" id="player-list">
+        <div class="player-row">
+          <div class="player-info">
+            <div class="avatar" style="background:rgba(237,137,54,0.15);color:#ed8936">Bo</div>
+            <div>
+              <div class="player-name">Bob</div>
+              <div class="player-addr">0xBob3...9a1C</div>
+            </div>
+          </div>
+          <div class="player-stats">
+            <div class="stat">Victoires <span>5</span></div>
+            <div class="stat">Parties <span>9</span></div>
+            <button class="btn-challenge" onclick="startChallenge('Bob')">⚔ Défier</button>
+          </div>
+        </div>
+        <div class="player-row">
+          <div class="player-info">
+            <div class="avatar" style="background:rgba(72,187,120,0.15);color:#68d391">Ch</div>
+            <div>
+              <div class="player-name">Charlie</div>
+              <div class="player-addr">0xChar...b3E7</div>
+            </div>
+          </div>
+          <div class="player-stats">
+            <div class="stat">Victoires <span>11</span></div>
+            <div class="stat">Parties <span>15</span></div>
+            <button class="btn-challenge" onclick="startChallenge('Charlie')">⚔ Défier</button>
+          </div>
+        </div>
+        <div class="player-row">
+          <div class="player-info">
+            <div class="avatar" style="background:rgba(159,122,234,0.15);color:#9f7aea">Di</div>
+            <div>
+              <div class="player-name">Diana</div>
+              <div class="player-addr">0xDia7...f0C1</div>
+            </div>
+          </div>
+          <div class="player-stats">
+            <div class="stat">Victoires <span>3</span></div>
+            <div class="stat">Parties <span>6</span></div>
+            <button class="btn-challenge" onclick="startChallenge('Diana')">⚔ Défier</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">Invitation reçue</div>
+      <div class="player-row" style="border-color:rgba(237,137,54,0.25);background:rgba(237,137,54,0.04)">
+        <div class="player-info">
+          <div style="width:7px;height:7px;border-radius:50%;background:#ed8936;box-shadow:0 0 6px #ed8936;animation:pulse 1s infinite"></div>
+          <div class="avatar" style="background:rgba(237,137,54,0.15);color:#ed8936">Bo</div>
+          <div>
+            <div class="player-name">Bob vous invite à jouer</div>
+            <div class="player-addr">Contrat : 0xA4f3...2b1e • Enjeu : 1 ETH</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-resp btn-hit" onclick="acceptGame()">✓ Accepter</button>
+          <button class="btn-resp btn-miss" style="color:#718096;border-color:rgba(113,128,150,0.2)">✕ Refuser</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-setup" style="display:none">
+      <div class="setup-layout">
+        <div class="setup-grid">
+          <div class="section-title" style="margin-bottom:12px">Placer ton bateau (2 cases)</div>
+          <div style="font-size:12px;color:#718096;margin-bottom:12px">Clique sur 2 cases adjacentes pour placer ton bateau.</div>
+          <div class="sea-grid" id="setup-grid"></div>
+          <div style="margin-top:10px;font-size:11px;color:#4a5568" id="setup-msg">Clique sur une case pour commencer</div>
+        </div>
+        <div class="setup-info">
+          <div class="info-card">
+            <h3>🔐 Sécurité commit-reveal</h3>
+            <p>Ton placement sera hashé avec un sel secret. L'adversaire ne peut pas voir tes bateaux.</p>
+          </div>
+          <div class="info-card">
+            <h3>Hash (commitment)</h3>
+            <div class="commitment-box" id="commit-preview">
+              Sélectionne ton placement pour voir le hash…
+            </div>
+          </div>
+          <div class="info-card">
+            <h3>Sel secret</h3>
+            <div class="commitment-box">
+              <span>salt = </span>D3E53CF1...8a2b
+            </div>
+          </div>
+          <button class="btn-primary" id="btn-ready" disabled onclick="startGame()">
+            ⚓ Valider et rejoindre la partie
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-game" style="display:none">
+      <div class="status-panel" style="margin-bottom:14px">
+        <div class="status-row">
+          <div class="status-info">
+            Contrat : <strong style="font-family:'Space Mono',monospace;font-size:11px">0xA4f3...2b1e</strong>
+            &nbsp;|&nbsp; Enjeu : <strong>2 ETH bloqués</strong>
+            &nbsp;|&nbsp; Attaques : <strong id="attack-count">0</strong>
+          </div>
+          <div class="turn-indicator your-turn" id="turn-badge">
+            <div class="pulse green"></div>
+            À ton tour d'attaquer
+          </div>
+        </div>
+      </div>
+
+      <div class="game-layout">
+        <div class="grid-container">
+          <div class="grid-label">
+            <span>🎯 Grille de Bob (attaque ici)</span>
+            <span class="hits" id="my-hits">0 touches</span>
+          </div>
+          <div class="sea-grid" id="enemy-grid"></div>
+        </div>
+        <div class="grid-container">
+          <div class="grid-label">
+            <span>🛡 Ta grille</span>
+            <span class="misses" id="enemy-hits">0 touché</span>
+          </div>
+          <div class="sea-grid" id="my-grid"></div>
+        </div>
+
+        <div class="status-panel" id="response-zone" style="display:none">
+          <div class="status-row">
+            <div class="status-info">
+              Bob attaque la case <strong id="attacked-cell">?</strong> — Réponds :
+            </div>
+            <div class="response-btns">
+              <button class="btn-resp btn-miss" onclick="respond('miss')">💧 Manqué</button>
+              <button class="btn-resp btn-hit" onclick="respond('hit')">🔥 Touché</button>
+              <button class="btn-resp btn-sunk" onclick="respond('sunk')">💥 Coulé !</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1">
+          <div class="section-label">Historique on-chain</div>
+          <div class="log-area" id="log"></div>
+        </div>
+
+        <div style="grid-column:1/-1">
+          <div class="section-label">État du Smart-Contract</div>
+          <div class="contract-panel">
+            <div class="contract-row"><span class="contract-key">state</span><span class="contract-val state-committed" id="c-state">Committed</span></div>
+            <div class="contract-row"><span class="contract-key">currentPlayer</span><span class="contract-val" id="c-player">0xAlice...d4F2</span></div>
+            <div class="contract-row"><span class="contract-key">hitsScored[Alice]</span><span class="contract-val" id="c-hits-a">0</span></div>
+            <div class="contract-row"><span class="contract-key">hitsScored[Bob]</span><span class="contract-val" id="c-hits-b">0</span></div>
+            <div class="contract-row"><span class="contract-key">attacks.length</span><span class="contract-val" id="c-attacks">0</span></div>
+            <div class="contract-row"><span class="contract-key">hasPendingAttack</span><span class="contract-val" id="c-pending">false</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="winner-overlay" id="winner-overlay" style="display:none">
+    <div class="winner-card">
+      <div class="winner-emoji" id="winner-emoji">🏆</div>
+      <div class="winner-title" id="winner-title">Victoire !</div>
+      <div class="winner-sub" id="winner-sub">Tu as coulé tous les bateaux de Bob</div>
+      <div class="prize-badge" id="winner-prize">+2 ETH reçus</div>
+      <div style="font-size:11px;color:#4a5568;margin-bottom:16px;font-family:'Space Mono',monospace">
+        keccak256(0x003, "ALICE_42") ✓ validé
+      </div>
+      <button class="btn-restart" onclick="restartGame()">↩ Retour au lobby</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHIP_POSITIONS_ALICE = [0, 1];
+const SHIP_POSITIONS_BOB = [4, 7];
+
+let state = {
+  tab: 'lobby',
+  setupSelected: [],
+  gameStarted: false,
+  myTurn: true,
+  pendingCell: null,
+  pendingResponse: false,
+  enemyAttacks: [],
+  myAttacks: [],
+  enemyHitsOnMe: 0,
+  myHitsOnEnemy: 0,
+  attackCount: 0,
+  bobHitsOnAlice: 0,
+  aliceHitsOnBob: 0,
+  winner: null,
+  opponent: 'Bob',
+  bobAttackQueue: [8, 3, 6],
+  bobAttackIdx: 0,
+};
+
+const CELL_LABELS = ['A1','A2','A3','B1','B2','B3','C1','C2','C3'];
+
+function showTab(t) {
+  ['lobby','setup','game'].forEach(id => {
+    document.getElementById('panel-'+id).style.display = id===t ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', ['lobby','setup','game'][i] === t);
+  });
+  state.tab = t;
+}
+
+function startChallenge(name) {
+  state.opponent = name;
+  alert(`Invitation envoyée à ${name} !\nEnjeu : 1 ETH\nContrat déployé : 0xA4f3...2b1e\n\n(Dans la démo, acceptez l'invitation de Bob en bas du lobby)`);
+}
+
+function acceptGame() {
+  showTab('setup');
+  buildSetupGrid();
+  addLog('system', `Invitation acceptée — Contrat 0xA4f3...2b1e rejoint`);
+  addLog('tx', `joinGame(commitment=0x8f3a...) — TX: 0xabc1...`);
+}
+
+function buildSetupGrid() {
+  const g = document.getElementById('setup-grid');
+  g.innerHTML = '';
+  for(let i=0;i<9;i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.textContent = CELL_LABELS[i];
+    cell.style.fontSize = '10px';
+    cell.style.fontFamily = "'Space Mono',monospace";
+    cell.style.color = '#4a5568';
+    cell.onclick = () => selectSetupCell(i, cell);
+    g.appendChild(cell);
+  }
+}
+
+function selectSetupCell(idx, el) {
+  if(state.setupSelected.length===0) {
+    state.setupSelected = [idx];
+    el.style.background = 'rgba(99,179,237,0.2)';
+    el.style.borderColor = 'rgba(99,179,237,0.4)';
+    document.getElementById('setup-msg').textContent = 'Maintenant sélectionne une case adjacente';
+  } else if(state.setupSelected.length===1) {
+    const first = state.setupSelected[0];
+    const validPairs = [[0,1],[1,2],[3,4],[4,5],[6,7],[7,8],[0,3],[3,6],[1,4],[4,7],[2,5],[5,8]];
+    const isValid = validPairs.some(([a,b]) => (a===first&&b===idx)||(b===first&&a===idx));
+    if(!isValid) {
+      document.getElementById('setup-msg').textContent = '⚠ Cases non adjacentes ! Recommence.';
+      state.setupSelected = [];
+      buildSetupGrid();
+      return;
+    }
+    state.setupSelected.push(idx);
+    el.style.background = 'rgba(99,179,237,0.2)';
+    el.style.borderColor = 'rgba(99,179,237,0.4)';
+    const bitmap = state.setupSelected.map(i => 1<<i).reduce((a,b)=>a|b,0);
+    const hex = '0x' + bitmap.toString(16).padStart(3,'0').toUpperCase();
+    document.getElementById('commit-preview').innerHTML =
+      `<span>bitmap = </span>${hex}<br><span>salt   = </span>D3E53CF1<br><span>hash   = keccak256(</span>${hex}, D3E53CF1<span>) =</span><br>0x8f3a...c2d9`;
+    document.getElementById('btn-ready').disabled = false;
+    document.getElementById('setup-msg').textContent = `✓ Bateau placé en ${CELL_LABELS[state.setupSelected[0]]} et ${CELL_LABELS[state.setupSelected[1]]}`;
+  }
+}
+
+function startGame() {
+  showTab('game');
+  buildGameGrids();
+  addLog('system', 'Partie démarrée — les 2 commitments sont validés');
+  addLog('tx', 'state: Created → Committed');
+  setTurn(true);
+}
+
+function buildGameGrids() {
+  buildEnemyGrid();
+  buildMyGrid();
+}
+
+function buildEnemyGrid() {
+  const g = document.getElementById('enemy-grid');
+  g.innerHTML = '';
+  for(let i=0;i<9;i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell attackable';
+    cell.id = 'ec-'+i;
+    cell.textContent = CELL_LABELS[i];
+    cell.style.fontSize = '10px';
+    cell.style.fontFamily = "'Space Mono',monospace";
+    cell.style.color = '#4a5568';
+    cell.onclick = () => attackCell(i);
+    g.appendChild(cell);
+  }
+}
+
+function buildMyGrid() {
+  const g = document.getElementById('my-grid');
+  g.innerHTML = '';
+  const ships = state.setupSelected.length===2 ? state.setupSelected : [0,1];
+  for(let i=0;i<9;i++) {
+    const cell = document.createElement('div');
+    const isShip = ships.includes(i);
+    cell.className = 'cell' + (isShip ? ' ship' : '');
+    cell.id = 'mc-'+i;
+    cell.textContent = isShip ? '🚢' : CELL_LABELS[i];
+    cell.style.fontSize = isShip ? '16px' : '10px';
+    if(!isShip) { cell.style.fontFamily = "'Space Mono',monospace"; cell.style.color = '#4a5568'; }
+    g.appendChild(cell);
+  }
+}
+
+function setTurn(myTurn) {
+  state.myTurn = myTurn;
+  const badge = document.getElementById('turn-badge');
+  badge.className = 'turn-indicator ' + (myTurn ? 'your-turn' : 'their-turn');
+  badge.innerHTML = myTurn
+    ? '<div class="pulse green"></div>À ton tour d\'attaquer'
+    : '<div class="pulse red"></div>Tour de Bob — attends…';
+  document.querySelectorAll('#enemy-grid .cell').forEach(c => {
+    c.style.cursor = myTurn ? 'crosshair' : 'not-allowed';
+    c.style.pointerEvents = myTurn ? 'auto' : 'none';
+  });
+  if(!myTurn) {
+    setTimeout(bobAttacks, 1200);
+  }
+}
+
+function attackCell(idx) {
+  if(!state.myTurn || state.winner) return;
+  const cell = document.getElementById('ec-'+idx);
+  if(cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+
+  state.myTurn = false;
+  state.pendingCell = idx;
+  state.attackCount++;
+  document.getElementById('attack-count').textContent = state.attackCount;
+  document.getElementById('c-attacks').textContent = state.attackCount;
+  document.getElementById('c-pending').textContent = 'true';
+  document.getElementById('c-player').textContent = '0xAlice...d4F2';
+  cell.classList.remove('attackable');
+  cell.classList.add('last-attack');
+  cell.style.fontSize = '18px';
+  cell.textContent = '🎯';
+  addLog('tx', `attack(cell=${idx}) — TX: 0x${Math.random().toString(16).slice(2,8)}...`);
+  setTurn(false);
+  document.getElementById('turn-badge').innerHTML = '<div class="pulse red" style="background:#ed8936"></div>En attente de réponse de Bob…';
+  setTimeout(bobResponds, 1000);
+}
+
+function bobResponds() {
+  if(!state.pendingCell===null) return;
+  const idx = state.pendingCell;
+  const isHit = SHIP_POSITIONS_BOB.includes(idx);
+  const cell = document.getElementById('ec-'+idx);
+  cell.classList.remove('last-attack');
+  document.getElementById('c-pending').textContent = 'false';
+
+  if(isHit) {
+    cell.classList.add('hit');
+    cell.textContent = '💥';
+    cell.style.fontSize = '16px';
+    state.aliceHitsOnBob++;
+    document.getElementById('c-hits-a').textContent = state.aliceHitsOnBob;
+    document.getElementById('my-hits').textContent = state.aliceHitsOnBob + ' touche' + (state.aliceHitsOnBob>1?'s':'');
+    addLog('hit', `Bob répond : TOUCHÉ ! (case ${CELL_LABELS[idx]})`);
+
+    if(state.aliceHitsOnBob >= 2) {
+      addLog('hit', 'Bob répond : COULÉ ! Tout le bateau est détruit.');
+      setTimeout(() => showWinner('alice'), 600);
+      return;
+    }
+    addLog('system', 'Tu touches → tu rejoues !');
+    setTurn(true);
+  } else {
+    cell.classList.add('miss');
+    cell.textContent = '💧';
+    cell.style.fontSize = '14px';
+    addLog('miss', `Bob répond : MANQUÉ (case ${CELL_LABELS[idx]})`);
+    addLog('system', 'Manqué → c\'est le tour de Bob');
+    setTurn(false);
+  }
+}
+
+function bobAttacks() {
+  if(state.winner) return;
+  const candidates = [];
+  for(let i=0;i<9;i++) {
+    const mc = document.getElementById('mc-'+i);
+    if(mc && !mc.classList.contains('hit') && !mc.classList.contains('miss') && !mc.id.includes('pending')) {
+      candidates.push(i);
+    }
+  }
+  if(candidates.length===0) return;
+  const idx = candidates[Math.floor(Math.random()*candidates.length)];
+  state.attackCount++;
+  document.getElementById('attack-count').textContent = state.attackCount;
+  document.getElementById('c-attacks').textContent = state.attackCount;
+  document.getElementById('c-player').textContent = '0xBob3...9a1C';
+  addLog('tx', `Bob: attack(cell=${idx}) — TX: 0x${Math.random().toString(16).slice(2,8)}...`);
+
+  const myShips = state.setupSelected.length===2 ? state.setupSelected : [0,1];
+  const isHit = myShips.includes(idx);
+  const mc = document.getElementById('mc-'+idx);
+
+  document.getElementById('response-zone').style.display = 'flex';
+  document.getElementById('attacked-cell').textContent = CELL_LABELS[idx];
+  state.pendingResponse = { idx, isHit, mc };
+  document.getElementById('turn-badge').innerHTML = '<div class="pulse red"></div>Bob t\'attaque — réponds !';
+}
+
+function respond(type) {
+  if(!state.pendingResponse) return;
+  const { idx, isHit, mc } = state.pendingResponse;
+  state.pendingResponse = null;
+  document.getElementById('response-zone').style.display = 'none';
+
+  if(type==='hit'||type==='sunk') {
+    mc.classList.add('hit');
+    mc.textContent = '💥'; mc.style.fontSize = '16px';
+    state.bobHitsOnAlice++;
+    document.getElementById('c-hits-b').textContent = state.bobHitsOnAlice;
+    document.getElementById('enemy-hits').textContent = state.bobHitsOnAlice + ' touché';
+    addLog('hit', `Tu réponds : ${type==='sunk'?'COULÉ':'TOUCHÉ'} (case ${CELL_LABELS[idx]})`);
+    if(type==='sunk'||state.bobHitsOnAlice>=2) {
+      addLog('system', 'Bob réclame la victoire…');
+      setTimeout(()=>showWinner('bob'), 600);
+      return;
+    }
+    addLog('system', 'Bob touche → il rejoue');
+    setTimeout(bobAttacks, 1000);
+  } else {
+    mc.classList.add('miss');
+    mc.textContent = '💧'; mc.style.fontSize = '14px';
+    addLog('miss', `Tu réponds : MANQUÉ (case ${CELL_LABELS[idx]})`);
+    addLog('system', 'Bob manque → ton tour !');
+    setTurn(true);
+  }
+}
+
+function showWinner(who) {
+  state.winner = who;
+  const ov = document.getElementById('winner-overlay');
+  ov.style.display = 'flex';
+  if(who==='alice') {
+    document.getElementById('winner-emoji').textContent = '🏆';
+    document.getElementById('winner-title').textContent = 'Victoire !';
+    document.getElementById('winner-sub').textContent = 'Tu as coulé tous les bateaux de Bob';
+    document.getElementById('winner-prize').textContent = '+2 ETH reçus';
+    addLog('tx', 'claimVictory(bitmap=0x003, salt="ALICE_42") ✓');
+    addLog('system', 'Fonds transférés : 2 ETH → 0xAlice...d4F2');
+  } else {
+    document.getElementById('winner-emoji').textContent = '💀';
+    document.getElementById('winner-title').textContent = 'Défaite…';
+    document.getElementById('winner-title').style.color = '#fc8181';
+    document.getElementById('winner-sub').textContent = 'Bob a coulé tous tes bateaux';
+    document.getElementById('winner-prize').textContent = 'Bob gagne 2 ETH';
+    document.getElementById('winner-prize').style.color = '#fc8181';
+    document.getElementById('winner-prize').style.borderColor = 'rgba(252,129,129,0.25)';
+    document.getElementById('winner-prize').style.background = 'rgba(252,129,129,0.08)';
+    addLog('tx', 'Bob: claimVictory(bitmap=0x090, salt="BOB_99") ✓');
+    addLog('system', 'Fonds transférés : 2 ETH → 0xBob3...9a1C');
+  }
+  document.getElementById('c-state').textContent = 'Finished';
+  document.getElementById('c-state').className = 'contract-val';
+  document.getElementById('c-state').style.color = '#68d391';
+}
+
+function restartGame() {
+  state = {
+    tab: 'lobby', setupSelected: [], gameStarted: false,
+    myTurn: true, pendingCell: null, pendingResponse: false,
+    enemyAttacks: [], myAttacks: [], enemyHitsOnMe: 0, myHitsOnEnemy: 0,
+    attackCount: 0, bobHitsOnAlice: 0, aliceHitsOnBob: 0,
+    winner: null, opponent: 'Bob',
+    bobAttackQueue: [8,3,6], bobAttackIdx: 0,
+  };
+  document.getElementById('winner-overlay').style.display = 'none';
+  document.getElementById('winner-title').style.color = '#68d391';
+  document.getElementById('winner-prize').style.color = '';
+  document.getElementById('winner-prize').style.borderColor = '';
+  document.getElementById('winner-prize').style.background = '';
+  document.getElementById('log').innerHTML = '';
+  showTab('lobby');
+}
+
+function addLog(type, msg) {
+  const log = document.getElementById('log');
+  if(!log) return;
+  const entry = document.createElement('div');
+  entry.className = 'log-entry ' + type;
+  const ts = new Date().toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  entry.textContent = `[${ts}] ${msg}`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+</script>
